@@ -28,6 +28,15 @@ When it's done:
 1. In Obsidian, choose **Open folder as vault** and pick your vault folder.
 2. Every day, open a terminal in your agent folder and run `claude`. That's where your agent lives.
 
+### Already have a vault?
+
+You don't have to start over. The guided setup checks your vault first (read-only) and offers two ways in:
+
+- **Adopt it:** your folders and notes stay exactly as they are. Only the brain layer is added: the vault index (mapped to *your* folders), Active Priorities and the daily-note template. Quick, and nothing of yours changes. (`./install.sh --adopt --vault <your vault>`)
+- **Migrate it:** a new vault is built next to yours, and your notes are copied into this structure folder by folder, after you approve where each folder goes. Your old vault is never touched. At the end, a check confirms every note and attachment arrived and no link broke.
+
+The whole process, step by step, is in [MIGRATING.md](MIGRATING.md). The checker works on any vault on its own: `python3 tools/vault-check.py <vault>`.
+
 ---
 
 ## How it works
@@ -78,6 +87,7 @@ They're kept apart on purpose. The agent folder is configuration. The vault is p
 | **Daily notes** | `Daily Notes/NN - Month YYYY/` | A log of each day's sessions, created from the template: what got done, what's in progress, decisions, notes touched. Each session also checks yesterday's note and fills in anything missing. |
 | **Living profile** | VAULT-INDEX.md | When the agent learns something lasting about you, it proposes a one-line profile update and writes it only after you approve. |
 | **MEMORY.md redirect** | `~/.claude/projects/…` | Claude Code has its own built-in memory. The installer points it at the vault, so you never end up with two memories that disagree. |
+| **vault-check** | `tools/` in this repo | A read-only health report: notes per folder, missing frontmatter, duplicate note names, links to notes that don't exist, folders without an index. With `--compare` it checks that a migration lost nothing. |
 
 ### Frontmatter, in one minute
 
@@ -146,7 +156,7 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md). Better still, ask your agent: its 
 
 Built on **[ai-memory-vault](https://github.com/jaredrhod/ai-memory-vault) by Jared Rhodenizer**, the system this vault started from. Jared's [fullstack-agent](https://github.com/jaredrhod/fullstack-agent) adds a voice, a face and hands on top of a vault like this one.
 
-What this version changes: domain folders without number prefixes and a sorting rule for them, Active Priorities as the single queue of open work, Jobs, folders run by their own agent, connector rules, a strict rule set, git backups, and a scripted installer with opt-in modules.
+What this version changes: domain folders without number prefixes and a sorting rule for them, Active Priorities as the single queue of open work, Jobs, folders run by their own agent, connector rules, a strict rule set, git backups, a scripted installer with opt-in modules, and adopt and migrate paths for existing vaults.
 
 ## License
 

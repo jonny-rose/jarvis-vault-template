@@ -34,6 +34,13 @@ That's the safety rule working: it never overwrites. If you want the template ve
 ## I want to add a life area or extra after setup
 Re-running `install.sh` adds a new area's folder and index, but it won't edit your existing CLAUDE.md or VAULT-INDEX.md. Ask your agent to copy the matching block from this repo's `agent/CLAUDE.md` or `vault/VAULT-INDEX.md` (between the `<!-- module:… -->` or `<!-- area:… -->` markers) into your files.
 
+## A migration stopped halfway
+**Fix:** open `Inbox/Migration log.md` in the new vault: it has the approved folder mapping and which folders are done. Carry on from the first folder not ticked off. Copying uses `--ignore-existing`, so re-copying a folder that's half done is safe. When finished, run `python3 tools/vault-check.py <new> --compare <old>`.
+
+## After a migration, a link opens the wrong note
+**Cause:** two notes share a name, and Obsidian resolves `[[Name]]` by name alone.
+**Fix:** `python3 tools/vault-check.py <vault>` lists every name used twice. Rename one copy (inside Obsidian, so its links update) or make the link a path, `[[Folder/Name]]`.
+
 ## git push fails
 **Cause:** usually no remote, or no permission to push to it.
 **Fix:** `git -C <vault> remote -v` shows the remote. If it's missing, create a **private** repo on your git host, then `git -C <vault> remote add origin <url>` and `git -C <vault> push -u origin HEAD`. Never make a vault repo public: it is your memory.

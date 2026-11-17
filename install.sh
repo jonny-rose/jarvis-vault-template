@@ -11,12 +11,16 @@
 #                [--agent ~/jarvis/agent] [--vault ~/jarvis/brain]
 #                [--areas career,company,content,personal | none]
 #                [--rules standard|strict] [--git none|local|push]
-#                [--modules jobs,agents,connectors | none] [--yes]
+#                [--modules jobs,agents,connectors | none] [--adopt] [--yes]
+#
+#   --adopt   Point --vault at a vault you already have. Your folders and notes
+#             are left exactly as they are; only the brain layer is added
+#             (VAULT-INDEX.md, Active Priorities.md, the daily-note template).
 
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-NAME="" ADDRESS="" PERSONA="" AGENT="" VAULT="" AREAS="" RULES="" GITMODE="" MODULES="" YES=0
+NAME="" ADDRESS="" PERSONA="" AGENT="" VAULT="" AREAS="" RULES="" GITMODE="" MODULES="" YES=0 ADOPT=0
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -32,7 +36,8 @@ while [ $# -gt 0 ]; do
     --git) GITMODE="${2:-}"; shift 2 ;;
     --modules) MODULES="${2:-}"; shift 2 ;;
     --yes|-y) YES=1; shift ;;
-    -h|--help) sed -n '2,15p' "$0"; exit 0 ;;
+    --adopt) ADOPT=1; shift ;;
+    -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
     *) die "unknown option: $1 (try --help)" ;;
   esac
 done
@@ -58,6 +63,11 @@ fi
 SLUG="$(printf '%s' "$NAME" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9\n' '-')"
 [ -n "$AGENT" ] || AGENT="$(ask "Agent folder (where you run Claude Code)" "~/$SLUG/agent")"
 [ -n "$VAULT" ] || VAULT="$(ask "Vault folder (your notes, opened in Obsidian)" "~/$SLUG/brain")"
+if [ "$ADOPT" -eq 1 ]; then
+  # Adopting keeps the person's own folders, so no life-area folders are added.
+  [ -z "$AREAS" ] || [ "$AREAS" = none ] || echo "note: --areas is ignored with --adopt (your own folders stay as they are)"
+  AREAS=none
+fi
 [ -n "$AREAS" ] || AREAS="$(ask "Life areas, comma-separated, or 'none' (career,company,content,personal)" "career,personal")"
 [ -n "$RULES" ] || RULES="$(ask "Rule set: 'standard' or 'strict'" standard)"
 [ -n "$GITMODE" ] || GITMODE="$(ask "Vault backup with git: 'none', 'local' or 'push'" local)"
@@ -73,6 +83,11 @@ VAULT="$(abspath "$VAULT")"
 [ "$AGENT" != "$VAULT" ] || die "the agent folder and the vault must be different folders"
 case "$VAULT/" in "$AGENT"/*) die "keep the vault outside the agent folder (siblings work well)" ;; esac
 case "$AGENT/" in "$VAULT"/*) die "keep the agent folder outside the vault (siblings work well)" ;; esac
+if [ "$ADOPT" -eq 1 ]; then
+  [ -d "$VAULT" ] || die "--adopt needs an existing vault, and $VAULT does not exist"
+  [ -n "$(find "$VAULT" -name '*.md' -not -path '*/.*' -print -quit)" ] \
+    || die "--adopt needs an existing vault, and $VAULT has no notes; run without --adopt"
+fi
 
 # Which marked blocks to keep: " strict jobs career git-local ... "
 KEEP=" "
@@ -131,7 +146,16 @@ echo
 
 # The vault: core folders always, life areas only when chosen.
 SRC="$HERE/vault"
-while IFS= read -r -d '' f; do
+if [ "$ADOPT" -eq 1 ]; then
+  # Adopt: only the brain layer, never a folder or setting of theirs.
+  render "$SRC/VAULT-INDEX.md" "$VAULT/VAULT-INDEX.md"
+  render "$SRC/Active Priorities.md" "$VAULT/Active Priorities.md"
+  render "$SRC/Daily Notes/Daily Note Template.md" "$VAULT/Daily Notes/Daily Note Template.md"
+  render "$SRC/Daily Notes/Daily Notes.md" "$VAULT/Daily Notes/Daily Notes.md"
+  has jobs && render "$SRC/Resources/Job Template.md" "$VAULT/Job Template.md"
+  [ "$GITMODE" != none ] && render "$SRC/.gitignore" "$VAULT/.gitignore"
+fi
+[ "$ADOPT" -eq 1 ] || while IFS= read -r -d '' f; do
   rel="${f#"$SRC"/}"
   top="${rel%%/*}"
   case "$top" in
@@ -180,6 +204,7 @@ if [ "$GITMODE" != none ]; then
 fi
 
 echo "Created ${#CREATED[@]} files."
+[ "$ADOPT" -eq 1 ] && echo "Adopted your vault: none of your existing notes, folders or Obsidian settings were touched."
 if [ ${#SKIPPED[@]} -gt 0 ]; then
   echo "Skipped ${#SKIPPED[@]} that already existed (nothing was overwritten):"
   for s in "${SKIPPED[@]}"; do echo "  - $s"; done
