@@ -140,3 +140,4 @@ If they chose `push`, help them create a **private** repo on their git host and 
 2. Tell them how to open the vault in Obsidian: **Open folder as vault** → their vault path.
 3. Tell them the daily habit: open a terminal, `cd` into the agent folder, run `claude`. The agent greets them and reads its memory on its own.
 4. Remind them this installer folder is only the toolbox. Their agent lives in the agent folder.
+5. Mention, once, that a voice is available: jarvis-voice (github.com/jonny-rose/jarvis-voice) lets them talk to the agent out loud, installed next to the agent folder. Offer it; don't push.

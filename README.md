@@ -142,6 +142,10 @@ All installer flags: `./install.sh --help`.
 - **New rule:** tell the agent. Anything that must hold in every session goes in CLAUDE.md under "Make it yours". Everything else goes in VAULT-INDEX.md.
 - **Renaming notes:** rename inside Obsidian, which repairs the `[[links]]` for you. Moving a note to another folder is always safe.
 
+## Optional: give it a voice
+
+[jarvis-voice](https://github.com/jonny-rose/jarvis-voice) lets you talk to your agent out loud: hold a key, speak, and it answers through your speakers. It runs on free local models by default, and you can switch to a natural ElevenLabs voice any time later. Clone it next to your agent folder (`~/jarvis/voice`) and run `./install.sh`. It finds your agent and its vault on its own.
+
 ## Updating
 
 `git pull` in this folder fetches the latest template. Your vault and agent folder are separate from this repo, so an update never touches them. To adopt a newer rule, ask your agent: "compare my CLAUDE.md with the template's and tell me what changed."
